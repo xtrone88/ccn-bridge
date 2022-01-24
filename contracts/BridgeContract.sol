@@ -1,18 +1,32 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.5.0;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import './Upgradeable.sol';
+
+interface IERC20 {
+    
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address recipient, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+}
 
 contract BridgeContract is Initializable, OwnableUpgradeable {
+    using SafeMath for uint256;
 
     address operationAccount;
     mapping(address => bool) authorizedAccount;
     mapping(address => uint256) balanceAdjustmentQuota;
     mapping(address => mapping(address => uint256)) availableBalances;
     mapping(address => uint256) totalAvailableBalances;
-        
+
     function initialize(address _operationAccount, address[] memory _authorizedAccount) public initializer {
         __Ownable_init();
         operationAccount = _operationAccount;
@@ -42,38 +56,38 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
 
     function withraw(address erc20, uint256 amount) public {
         require(availableBalances[msg.sender][erc20] > amount, "Insufficient available balance");
-        availableBalances[msg.sender][erc20] -= amount;
-        totalAvailableBalances[erc20] -= amount;
+        availableBalances[msg.sender][erc20] = availableBalances[msg.sender][erc20].sub(amount);
+        totalAvailableBalances[erc20] = totalAvailableBalances[erc20].sub(amount);
         IERC20(erc20).transfer(msg.sender, amount);
     }
 
     function withrawAll(address erc20) public onlyOwner {
         uint256 realBalance = IERC20(erc20).balanceOf(address(this));
         if (realBalance > totalAvailableBalances[erc20]) {
-            IERC20(erc20).transfer(msg.sender, realBalance - totalAvailableBalances[erc20]);
+            IERC20(erc20).transfer(msg.sender, realBalance.sub(totalAvailableBalances[erc20]));
         }
     }
 
     function addAvailableBalance(address erc20, uint256 amount, address target) public operationOnly {
-        availableBalances[target][erc20] += amount;
-        totalAvailableBalances[erc20] += amount;
+        availableBalances[target][erc20] = availableBalances[target][erc20].add(amount);
+        totalAvailableBalances[erc20] = totalAvailableBalances[erc20].add(amount);
         uint256 realBalance = IERC20(erc20).balanceOf(address(this));
         if (totalAvailableBalances[erc20] > realBalance) {
-            emit Inject(erc20, totalAvailableBalances[erc20] - realBalance);
+            emit Inject(erc20, totalAvailableBalances[erc20].sub(realBalance));
         }
     }
 
     function addAvailableBalanceWithAdjustmentQuota(address erc20, uint256 amount, address target) public operationOnly {
         require(balanceAdjustmentQuota[erc20] > amount, "Insufficient available quata");
-        availableBalances[target][erc20] += amount;
-        totalAvailableBalances[erc20] += amount;
-        balanceAdjustmentQuota[erc20] -= amount;
+        availableBalances[target][erc20] = availableBalances[target][erc20].add(amount);
+        totalAvailableBalances[erc20] = totalAvailableBalances[erc20].add(amount);
+        balanceAdjustmentQuota[erc20] = balanceAdjustmentQuota[erc20].sub(amount);
         if (balanceAdjustmentQuota[erc20] < 1 ether) {
             emit ResetQuta(erc20, balanceAdjustmentQuota[erc20]);
         }
         uint256 realBalance = IERC20(erc20).balanceOf(address(this));
         if (totalAvailableBalances[erc20] > realBalance) {
-            emit Inject(erc20, totalAvailableBalances[erc20] - realBalance);
+            emit Inject(erc20, totalAvailableBalances[erc20].sub(realBalance));
         }
     }
 
