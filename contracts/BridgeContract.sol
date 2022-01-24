@@ -55,6 +55,15 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
     }
 
     function addAvailableBalance(address erc20, uint256 amount, address target) public operationOnly {
+        availableBalances[target][erc20] += amount;
+        totalAvailableBalances[erc20] += amount;
+        uint256 realBalance = IERC20(erc20).balanceOf(address(this));
+        if (totalAvailableBalances[erc20] > realBalance) {
+            emit Inject(erc20, totalAvailableBalances[erc20] - realBalance);
+        }
+    }
+
+    function addAvailableBalanceWithAdjustmentQuota(address erc20, uint256 amount, address target) public operationOnly {
         require(balanceAdjustmentQuota[erc20] > amount, "Insufficient available quata");
         availableBalances[target][erc20] += amount;
         totalAvailableBalances[erc20] += amount;

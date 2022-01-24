@@ -28,21 +28,24 @@ describe('Bridge contract', function () {
         expect(await erc20.balanceOf(bridge.address)).to.equal(100)
     })
 
-    it('resetBalanceAdjustmentQuota', async () => {
-        await bridge.connect(authorized).resetBalanceAdjustmentQuota(erc20.address, 1000)
-        expect(await bridge.balanceAdjustmentQuotaOf(erc20.address)).to.equal(1000)
-    })
-
     it('addAvailableBalance', async () => {
         await bridge.addAvailableBalance(erc20.address, 100, receiver.address)
         expect(await bridge.availableBalanceOf(receiver.address, erc20.address)).to.equal(100)
     })
 
+    it('addAvailableBalanceWithAdjustmentQuota', async () => {
+        await bridge.connect(authorized).resetBalanceAdjustmentQuota(erc20.address, 1000)
+        expect(await bridge.balanceAdjustmentQuotaOf(erc20.address)).to.equal(1000)
+
+        await bridge.addAvailableBalanceWithAdjustmentQuota(erc20.address, 100, receiver.address)
+        expect(await bridge.availableBalanceOf(receiver.address, erc20.address)).to.equal(200)
+    })
+
     it('withraw', async () => {
         await bridge.connect(receiver).withraw(erc20.address, 50)
         expect(await erc20.balanceOf(receiver.address)).to.equal(50)
-        expect(await bridge.availableBalanceOf(receiver.address, erc20.address)).to.equal(50)
-        expect(await bridge.totalAvailableBalanceOf(erc20.address)).to.equal(50)
+        expect(await bridge.availableBalanceOf(receiver.address, erc20.address)).to.equal(150)
+        expect(await bridge.totalAvailableBalanceOf(erc20.address)).to.equal(150)
     })
 
     it('withrawAll', async () => {
