@@ -11,8 +11,8 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
     address operationAccount;
     mapping(address => bool) authorizedAccount;
     mapping(address => uint256) balanceAdjustmentQuota;
-    mapping(address => mapping(address => uint256)) availableBalances;
-    mapping(address => uint256) totalAvailableBalances;
+    // mapping(address => mapping(address => uint256)) availableBalances;
+    // mapping(address => uint256) totalAvailableBalances;
 
     function initialize(address _operationAccount, address[] memory _authorizedAccount) public initializer {
         __Ownable_init();
@@ -41,40 +41,41 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
         emit Deposit(erc20, amount, target);
     }
 
-    function withraw(address erc20, uint256 amount) public {
-        require(availableBalances[msg.sender][erc20] > amount, "Insufficient available balance");
-        availableBalances[msg.sender][erc20] = availableBalances[msg.sender][erc20].sub(amount);
-        totalAvailableBalances[erc20] = totalAvailableBalances[erc20].sub(amount);
-        IERC20(erc20).transfer(msg.sender, amount);
-    }
+    // function withraw(address erc20, uint256 amount) public {
+    //     require(availableBalances[msg.sender][erc20] > amount, "Insufficient available balance");
+    //     availableBalances[msg.sender][erc20] = availableBalances[msg.sender][erc20].sub(amount);
+    //     totalAvailableBalances[erc20] = totalAvailableBalances[erc20].sub(amount);
+    //     IERC20(erc20).transfer(msg.sender, amount);
+    // }
 
-    function withrawAll(address erc20) public onlyOwner {
-        uint256 realBalance = IERC20(erc20).balanceOf(address(this));
-        if (realBalance > totalAvailableBalances[erc20]) {
-            IERC20(erc20).transfer(msg.sender, realBalance.sub(totalAvailableBalances[erc20]));
-        }
-    }
+    // function withrawAll(address erc20) public onlyOwner {
+    //     uint256 realBalance = IERC20(erc20).balanceOf(address(this));
+    //     if (realBalance > totalAvailableBalances[erc20]) {
+    //         IERC20(erc20).transfer(msg.sender, realBalance.sub(totalAvailableBalances[erc20]));
+    //     }
+    // }
 
-    function addAvailableBalance(address erc20, uint256 amount, address target) public operationOnly {
-        availableBalances[target][erc20] = availableBalances[target][erc20].add(amount);
-        totalAvailableBalances[erc20] = totalAvailableBalances[erc20].add(amount);
-        uint256 realBalance = IERC20(erc20).balanceOf(address(this));
-        if (totalAvailableBalances[erc20] > realBalance) {
-            emit Inject(erc20, totalAvailableBalances[erc20].sub(realBalance));
-        }
-    }
+    // function addAvailableBalance(address erc20, uint256 amount, address target) public operationOnly {
+    //     availableBalances[target][erc20] = availableBalances[target][erc20].add(amount);
+    //     totalAvailableBalances[erc20] = totalAvailableBalances[erc20].add(amount);
+    //     uint256 realBalance = IERC20(erc20).balanceOf(address(this));
+    //     if (totalAvailableBalances[erc20] > realBalance) {
+    //         emit Inject(erc20, totalAvailableBalances[erc20].sub(realBalance));
+    //     }
+    // }
 
     function addAvailableBalanceWithAdjustmentQuota(address erc20, uint256 amount, address target) public operationOnly {
         require(balanceAdjustmentQuota[erc20] > amount, "Insufficient available quata");
-        availableBalances[target][erc20] = availableBalances[target][erc20].add(amount);
-        totalAvailableBalances[erc20] = totalAvailableBalances[erc20].add(amount);
+        // availableBalances[target][erc20] = availableBalances[target][erc20].add(amount);
+        // totalAvailableBalances[erc20] = totalAvailableBalances[erc20].add(amount);
         balanceAdjustmentQuota[erc20] = balanceAdjustmentQuota[erc20].sub(amount);
-        if (balanceAdjustmentQuota[erc20] < 1 ether) {
+        if (balanceAdjustmentQuota[erc20] < 1 ether) { // this is sample threshold, it must be picked by exact value
             emit ResetQuta(erc20, balanceAdjustmentQuota[erc20]);
         }
+        IERC20(erc20).transfer(target, amount);
         uint256 realBalance = IERC20(erc20).balanceOf(address(this));
-        if (totalAvailableBalances[erc20] > realBalance) {
-            emit Inject(erc20, totalAvailableBalances[erc20].sub(realBalance));
+        if (realBalance < 1 ether) { // this is sample threshold, it must be picked by exact value
+            emit Inject(erc20, realBalance);
         }
     }
 
@@ -91,10 +92,12 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
     }
 
     function totalAvailableBalanceOf(address erc20) public view returns (uint256) {
-        return totalAvailableBalances[erc20];
+        // return totalAvailableBalances[erc20];
+        return IERC20(erc20).balanceOf(address(this));
     }
 
     function availableBalanceOf(address owner, address erc20) public view returns (uint256) {
-        return availableBalances[owner][erc20];
+        // return availableBalances[owner][erc20];
+        return IERC20(erc20).balanceOf(owner);
     }
 }
