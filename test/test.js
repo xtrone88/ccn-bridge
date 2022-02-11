@@ -24,7 +24,7 @@ describe('Bridge contract', function () {
 
     it('deposit', async () => {
         await erc20.approve(bridge.address, 100)
-        await bridge.deposit(erc20.address, 100, receiver.address)
+        await bridge.deposit(erc20.address, 100, "0x90F79bf6EB2c4f870365E785982E1f101E93b906")
         expect(await erc20.balanceOf(bridge.address)).to.equal(100)
     })
 

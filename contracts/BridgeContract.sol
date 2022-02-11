@@ -33,11 +33,11 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
         _;
     }
 
-    event Deposit(address erc20, uint256 amount, address target);
+    event Deposit(address erc20, uint256 amount, string target);
     event ResetQuta(address erc20, uint256 remain);
     event Inject(address erc20, uint256 amount);
 
-    function deposit(address erc20, uint256 amount, address target) public {
+    function deposit(address erc20, uint256 amount, string memory target) public {
         IERC20(erc20).transferFrom(msg.sender, address(this), amount);
         emit Deposit(erc20, amount, target);
     }
