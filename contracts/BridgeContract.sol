@@ -14,12 +14,13 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
     // mapping(address => mapping(address => uint256)) availableBalances;
     // mapping(address => uint256) totalAvailableBalances;
 
-    function initialize(address _operationAccount, address[] memory _authorizedAccount) public initializer {
+    function initialize(address _operationAccount, address _authorizedAccount) public initializer {
         __Ownable_init();
         operationAccount = _operationAccount;
-        for (uint256 i = 0; i < _authorizedAccount.length; i++) {
-            authorizedAccount[_authorizedAccount[i]] = true;
-        }
+        authorizedAccount[_authorizedAccount] = true;
+        // for (uint256 i = 0; i < _authorizedAccount.length; i++) {
+        //     authorizedAccount[_authorizedAccount[i]] = true;
+        // }
     }
 
     modifier authorizedOnly() {

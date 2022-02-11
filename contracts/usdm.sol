@@ -168,7 +168,7 @@ contract StandardToken is BasicToken, ERC20 {
     * @param _to address The address which you want to transfer to
     * @param _value uint256 the amount of tokens to be transferred
     */
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public onlyPayloadSize(2 * 32) returns (bool) {
         uint256 _allowance = allowed[_from][_to];
 
         // Check is not needed because sub(_allowance, _value) will already throw if this condition is not met

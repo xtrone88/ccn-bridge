@@ -18,7 +18,7 @@ describe('Bridge contract', function () {
         receiver = _receiver
 
         const Bridge = await ethers.getContractFactory("BridgeContract")
-        bridge = await upgrades.deployProxy(Bridge, [operation.address, [authorized.address]])
+        bridge = await upgrades.deployProxy(Bridge, [operation.address, authorized.address])
         await bridge.deployed()
     })
 
