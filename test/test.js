@@ -7,8 +7,8 @@ describe('Bridge contract', function () {
     let erc20, bridge
 
     before(async () => {
-        const ERC20 = await ethers.getContractFactory('TestERC20')
-        erc20 = await ERC20.deploy()
+        const ERC20 = await ethers.getContractFactory('TetherToken')
+        erc20 = await ERC20.deploy(1000000000000, 'tether', 'usdm', 4);
         await erc20.deployed()
 
         const [_owner, _operation, _authorized, _receiver] = await ethers.getSigners()
