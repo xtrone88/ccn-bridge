@@ -37,7 +37,7 @@ describe('Bridge contract', function () {
         await bridge.connect(authorized).resetBalanceAdjustmentQuota(erc20.address, 1000)
         expect(await bridge.balanceAdjustmentQuotaOf(erc20.address)).to.equal(1000)
 
-        await bridge.addAvailableBalanceWithAdjustmentQuota(erc20.address, 100, receiver.address)
+        await bridge.connect(operation).addAvailableBalanceWithAdjustmentQuota(erc20.address, 100, receiver.address)
         expect(await bridge.availableBalanceOf(receiver.address, erc20.address)).to.equal(100)
     })
 

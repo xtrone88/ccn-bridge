@@ -29,7 +29,7 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
     }
 
     modifier operationOnly() {
-        require(msg.sender != operationAccount, "Not operation account");
+        require(msg.sender == operationAccount, "Not operation account");
         _;
     }
 
