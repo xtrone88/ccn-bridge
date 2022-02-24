@@ -80,8 +80,8 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
 
     /**
      * @dev This function is called from nodejs wallet when captured event from depositor
-     * if erc20 is 0, this is for coin -> wrap
-     * else if erc20 is wrapAddress, this is for wrap -> coin
+     * if erc20 is 0, this is for wrap -> coin
+     * else if erc20 is wrapAddress, this is for coin -> wrap
      * else this is for erc20 -> erc20
      */
     function addAvailableBalanceWithAdjustmentQuota(address erc20, uint256 amount, address target) public operationOnly {
