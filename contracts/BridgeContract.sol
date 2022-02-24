@@ -9,14 +9,17 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
     using SafeMath for uint256;
 
     address operationAccount;
+    address wrapAddress; // wrap token address for coin
+
     mapping(address => bool) authorizedAccount;
     mapping(address => uint256) balanceAdjustmentQuota;
     // mapping(address => mapping(address => uint256)) availableBalances;
     // mapping(address => uint256) totalAvailableBalances;
 
-    function initialize(address _operationAccount, address _authorizedAccount) public initializer {
+    function initialize(address _operationAccount, address _wrapAddress, address _authorizedAccount) public initializer {
         __Ownable_init();
         operationAccount = _operationAccount;
+        wrapAddress = _wrapAddress;
         authorizedAccount[_authorizedAccount] = true;
         // for (uint256 i = 0; i < _authorizedAccount.length; i++) {
         //     authorizedAccount[_authorizedAccount[i]] = true;
@@ -42,6 +45,16 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
         emit Deposit(erc20, amount, target);
     }
 
+    function deposit_from_wrap(uint256 amount, string memory target) public {
+        IERC20(wrapAddress).transferFrom(msg.sender, address(this), amount);
+        emit Deposit(address(0), amount, target);
+    }
+
+    function deposit_from_coin(string memory target) public payable {
+        require(msg.value > 0, "No deposit amount");
+        emit Deposit(wrapAddress, msg.value, target);
+    }
+
     // function withraw(address erc20, uint256 amount) public {
     //     require(availableBalances[msg.sender][erc20] > amount, "Insufficient available balance");
     //     availableBalances[msg.sender][erc20] = availableBalances[msg.sender][erc20].sub(amount);
@@ -65,6 +78,12 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
     //     }
     // }
 
+    /**
+     * @dev This function is called from nodejs wallet when captured event from depositor
+     * if erc20 is 0, this is for coin -> wrap
+     * else if erc20 is wrapAddress, this is for wrap -> coin
+     * else this is for erc20 -> erc20
+     */
     function addAvailableBalanceWithAdjustmentQuota(address erc20, uint256 amount, address target) public operationOnly {
         require(balanceAdjustmentQuota[erc20] > amount, "Insufficient available quata");
         // availableBalances[target][erc20] = availableBalances[target][erc20].add(amount);
@@ -73,19 +92,39 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
         if (balanceAdjustmentQuota[erc20] < 1 ether) { // this is sample threshold, it must be picked by exact value
             emit ResetQuta(erc20, balanceAdjustmentQuota[erc20]);
         }
-        IERC20(erc20).transfer(target, amount);
-        uint256 realBalance = IERC20(erc20).balanceOf(address(this));
+
+        uint256 realBalance = 0;
+        if (erc20 == address(0)) { 
+            (bool success, ) = target.call.value(amount)("");
+            require(success, "Failed to transfer value");
+            realBalance = address(this).balance;
+        } else {
+            IERC20(erc20).transfer(target, amount);
+            realBalance = IERC20(erc20).balanceOf(address(this));
+        }
         if (realBalance < 1 ether) { // this is sample threshold, it must be picked by exact value
             emit Inject(erc20, realBalance);
         }
     }
 
+    /**
+     * @dev This function is called when you want to reset quota of token for nodejs wallet
+     * if erc20 is 0, it means coin
+     */
     function resetBalanceAdjustmentQuota(address erc20, uint256 amount) public authorizedOnly {
         balanceAdjustmentQuota[erc20] = amount;
     }
 
-    function inject(address erc20, uint256 amount) public authorizedOnly {
-        IERC20(erc20).transferFrom(msg.sender, address(this), amount);
+    /**
+     * @dev This function is called when you want to inject certain amount of token for bridging
+     * if erc20 is 0, it means coin
+     */
+    function inject(address erc20, uint256 amount) public payable authorizedOnly {
+        if (erc20 == address(0)) {
+            require(msg.value == amount, "Invalid parameter");
+        } else {
+            IERC20(erc20).transferFrom(msg.sender, address(this), amount);
+        }
     }
 
     function balanceAdjustmentQuotaOf(address erc20) public view returns (uint256) {
