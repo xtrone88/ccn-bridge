@@ -26,6 +26,12 @@ describe('Bridge contract', function () {
         await bridge.deployed()
     })
 
+    it('setCrossChainFee', async () => {
+        await bridge.connect(operation).setCrossChainFee('0x0000000000000000000000000000000000000000', ethers.utils.parseEther("0.01"))
+        await bridge.connect(operation).setCrossChainFee(ccnwrap.address, 10)
+        await bridge.connect(operation).setCrossChainFee(erc20.address, 10)
+    })
+
     it('deposit', async () => {
         await erc20.approve(bridge.address, 100)
         await bridge.deposit(erc20.address, 100, "0x90F79bf6EB2c4f870365E785982E1f101E93b906")
@@ -43,63 +49,60 @@ describe('Bridge contract', function () {
         expect(await waffle.provider.getBalance(bridge.address)).to.equal(ethers.utils.parseEther("1"))
     })
 
-    // it('addAvailableBalance', async () => {
-    //     await bridge.addAvailableBalance(erc20.address, 100, receiver.address)
-    //     expect(await bridge.availableBalanceOf(receiver.address, erc20.address)).to.equal(100)
-    // })
-
     it('addAvailableBalanceWithAdjustmentQuota : erc20->erc20', async () => {
         await bridge.connect(authorized).resetBalanceAdjustmentQuota(erc20.address, 1000)
-        expect(await bridge.balanceAdjustmentQuotaOf(erc20.address)).to.equal(1000)
+        expect(await bridge.balanceAdjustmentQuota(erc20.address)).to.equal(1000)
 
         await bridge.connect(operation).addAvailableBalanceWithAdjustmentQuota(erc20.address, 100, receiver.address)
-        expect(await bridge.availableBalanceOf(receiver.address, erc20.address)).to.equal(100)
+        expect(await erc20.balanceOf(receiver.address)).to.equal(90)
     })
 
     it('addAvailableBalanceWithAdjustmentQuota : wrap->coin', async () => {
         await bridge.connect(authorized).resetBalanceAdjustmentQuota(ccnwrap.address, 1000)
-        expect(await bridge.balanceAdjustmentQuotaOf(ccnwrap.address)).to.equal(1000)
+        expect(await bridge.balanceAdjustmentQuota(ccnwrap.address)).to.equal(1000)
 
         await bridge.connect(operation).addAvailableBalanceWithAdjustmentQuota(ccnwrap.address, 100, receiver.address)
-        expect(await bridge.availableBalanceOf(receiver.address, ccnwrap.address)).to.equal(100)
+        expect(await ccnwrap.balanceOf(receiver.address)).to.equal(90)
     })
 
     it('addAvailableBalanceWithAdjustmentQuota : coin->wrap', async () => {
         await bridge.connect(authorized).resetBalanceAdjustmentQuota('0x0000000000000000000000000000000000000000', ethers.utils.parseEther("10"))
-        expect(await bridge.balanceAdjustmentQuotaOf('0x0000000000000000000000000000000000000000')).to.equal(ethers.utils.parseEther("10"))
+        expect(await bridge.balanceAdjustmentQuota('0x0000000000000000000000000000000000000000')).to.equal(ethers.utils.parseEther("10"))
 
         await bridge.connect(operation).addAvailableBalanceWithAdjustmentQuota('0x0000000000000000000000000000000000000000', ethers.utils.parseEther("1"), receiver.address)
-        expect(await waffle.provider.getBalance(receiver.address)).to.equal(ethers.utils.parseEther("10001"))
+        expect(await waffle.provider.getBalance(receiver.address)).to.equal(ethers.utils.parseEther("10000.99"))
     })
-
-    // it('withraw', async () => {
-    //     await bridge.connect(receiver).withraw(erc20.address, 50)
-    //     expect(await erc20.balanceOf(receiver.address)).to.equal(50)
-    //     expect(await bridge.availableBalanceOf(receiver.address, erc20.address)).to.equal(150)
-    //     expect(await bridge.totalAvailableBalanceOf(erc20.address)).to.equal(150)
-    // })
-
-    // it('withrawAll', async () => {
-    //     await bridge.connect(owner).withrawAll(erc20.address)
-    //     expect(await erc20.balanceOf(owner.address)).to.equal(9900)
-    // })
 
     it('inject erc20', async () => {
         await erc20.connect(owner).transfer(authorized.address, 500)
         await erc20.connect(authorized).approve(bridge.address, 150)
         await bridge.connect(authorized).inject(erc20.address, 150)
-        expect(await erc20.balanceOf(bridge.address)).to.equal(150)
+        expect(await erc20.balanceOf(bridge.address)).to.equal(160)
     })
 
     it('inject ccnwrap', async () => {
         await ccnwrap.connect(owner).transfer(authorized.address, 500)
         await ccnwrap.connect(authorized).approve(bridge.address, 150)
         await bridge.connect(authorized).inject(ccnwrap.address, 150)
-        expect(await ccnwrap.balanceOf(bridge.address)).to.equal(150)
+        expect(await ccnwrap.balanceOf(bridge.address)).to.equal(160)
     })
     
     it('inject coin', async () => {
         await bridge.connect(authorized).inject('0x0000000000000000000000000000000000000000', ethers.utils.parseEther("1"), {value: ethers.utils.parseEther("1")})
-        expect(await waffle.provider.getBalance(bridge.address)).to.equal(ethers.utils.parseEther("1"))
+        expect(await waffle.provider.getBalance(bridge.address)).to.equal(ethers.utils.parseEther("1.01"))
+    })
+
+    it('withraw', async () => {
+        expect(await bridge.balanceCrossChainFee('0x0000000000000000000000000000000000000000')).to.equal(ethers.utils.parseEther("0.01"))
+        await bridge.withraw('0x0000000000000000000000000000000000000000', await bridge.balanceCrossChainFee('0x0000000000000000000000000000000000000000'))
+        expect(await bridge.balanceCrossChainFee('0x0000000000000000000000000000000000000000')).to.equal(0)
+
+        expect(await bridge.balanceCrossChainFee(erc20.address)).to.equal(10)
+        await bridge.withraw(erc20.address, await bridge.balanceCrossChainFee(erc20.address))
+        expect(await bridge.balanceCrossChainFee(erc20.address)).to.equal(0)
+
+        expect(await bridge.balanceCrossChainFee(ccnwrap.address)).to.equal(10)
+        await bridge.withraw(ccnwrap.address, await bridge.balanceCrossChainFee(ccnwrap.address))
+        expect(await bridge.balanceCrossChainFee(ccnwrap.address)).to.equal(0)
     })
 })
