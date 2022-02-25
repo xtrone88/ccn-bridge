@@ -47,7 +47,7 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
 
     function depositWithCoin(string memory target) public payable {
         require(msg.value > 0, "No deposit amount");
-        emit Deposit(wrapAddress, msg.value, target);
+        emit Deposit(address(0), msg.value, target);
     }
 
     // function withraw(address erc20, uint256 amount) public {
