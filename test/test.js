@@ -32,14 +32,14 @@ describe('Bridge contract', function () {
         expect(await erc20.balanceOf(bridge.address)).to.equal(100)
     })
 
-    it('deposit_from_wrap', async () => {
+    it('deposit_with_wrap', async () => {
         await ccnwrap.approve(bridge.address, 100)
-        await bridge.deposit_from_wrap(100, "0x90F79bf6EB2c4f870365E785982E1f101E93b906")
+        await bridge.deposit(ccnwrap.address, 100, "0x90F79bf6EB2c4f870365E785982E1f101E93b906")
         expect(await ccnwrap.balanceOf(bridge.address)).to.equal(100)
     })
 
-    it('deposit_from_coin', async () => {
-        await bridge.deposit_from_coin("0x90F79bf6EB2c4f870365E785982E1f101E93b906", {value: ethers.utils.parseEther("1")})
+    it('deposit_with_coin', async () => {
+        await bridge.depositWithCoin("0x90F79bf6EB2c4f870365E785982E1f101E93b906", {value: ethers.utils.parseEther("1")})
         expect(await waffle.provider.getBalance(bridge.address)).to.equal(ethers.utils.parseEther("1"))
     })
 

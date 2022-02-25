@@ -45,14 +45,9 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
         emit Deposit(erc20, amount, target);
     }
 
-    function deposit_from_wrap(uint256 amount, string memory target) public {
-        IERC20(wrapAddress).transferFrom(msg.sender, address(this), amount);
-        emit Deposit(address(0), amount, target);
-    }
-
-    function deposit_from_coin(string memory target) public payable {
+    function depositWithCoin(string memory target) public payable {
         require(msg.value > 0, "No deposit amount");
-        emit Deposit(wrapAddress, msg.value, target);
+        emit Deposit(address(0), msg.value, target);
     }
 
     // function withraw(address erc20, uint256 amount) public {
