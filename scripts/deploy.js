@@ -1,4 +1,5 @@
 const { ethers, upgrades } = require("hardhat")
+require('dotenv').config()
 
 async function main() {
   const BridgeContract = await ethers.getContractFactory("BridgeContract")

@@ -12,9 +12,9 @@ module.exports = {
       url: process.env.MAINNET_END_POINT,
       accounts: [process.env.MAINNET_PRIVATE_KEY]
     },
-    rinkeby: {
-      url: process.env.RINKEBY_END_POINT,
-      accounts: [process.env.RINKEBY_PRIVATE_KEY]
+    huygen: {
+      url: process.env.HUYGEN_TEST_URL,
+      accounts: [process.env.HUYGEN_PRIVATE_KEY]
     }
   },
   etherscan: {

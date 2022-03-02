@@ -40,9 +40,9 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
         crossChainFee[erc20] = fee;
     }
 
-    event Deposit(address erc20, uint256 amount, string target);
-    event ResetQuta(address erc20, uint256 remain);
-    event Inject(address erc20, uint256 amount);
+    event Deposit(address indexed erc20, uint256 indexed amount, string indexed target);
+    event ResetQuta(address indexed erc20, uint256 indexed remain);
+    event Inject(address indexed erc20, uint256 indexed amount);
 
     function deposit(address erc20, uint256 amount, string memory target) public {
         require(amount > crossChainFee[erc20], "No deposit amount");
