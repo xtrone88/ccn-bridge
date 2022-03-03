@@ -40,7 +40,7 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
         crossChainFee[erc20] = fee;
     }
 
-    event Deposit(address indexed erc20, uint256 indexed amount, string indexed target);
+    event Deposit(address indexed erc20, uint256 indexed amount, string target);
     event ResetQuta(address indexed erc20, uint256 indexed remain);
     event Inject(address indexed erc20, uint256 indexed amount);
 
