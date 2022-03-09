@@ -14,7 +14,12 @@ module.exports = {
     },
     huygen: {
       url: process.env.HUYGEN_URL,
-      accounts: [process.env.HUYGEN_PRIVATE_KEY]
+      accounts: [
+        process.env.HUYGEN_PRIVATE_KEY,
+        process.env.HUYGEN_OPERATION_PRIVATE_KEY,
+        process.env.HUYGEN_AUTHORIZED_PRIVATE_KEY,
+        process.env.HUYGEN_USER_PRIVATE_KEY,
+      ]
     }
   },
   etherscan: {
