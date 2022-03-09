@@ -13,7 +13,7 @@ module.exports = {
       accounts: [process.env.MAINNET_PRIVATE_KEY]
     },
     huygen: {
-      url: process.env.HUYGEN_TEST_URL,
+      url: process.env.HUYGEN_URL,
       accounts: [process.env.HUYGEN_PRIVATE_KEY]
     }
   },

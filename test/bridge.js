@@ -32,19 +32,19 @@ describe('Bridge contract', function () {
         await bridge.connect(operation).setCrossChainFee(erc20.address, 10)
     })
 
-    it('deposit', async () => {
+    it('deposit : erc20', async () => {
         await erc20.approve(bridge.address, 100)
         await bridge.deposit(erc20.address, 100, "0x90F79bf6EB2c4f870365E785982E1f101E93b906")
         expect(await erc20.balanceOf(bridge.address)).to.equal(100)
     })
 
-    it('deposit_with_wrap', async () => {
+    it('deposit : CCNWrap', async () => {
         await ccnwrap.approve(bridge.address, 100)
         await bridge.deposit(ccnwrap.address, 100, "0x90F79bf6EB2c4f870365E785982E1f101E93b906")
         expect(await ccnwrap.balanceOf(bridge.address)).to.equal(100)
     })
 
-    it('deposit_with_coin', async () => {
+    it('deposit : Coin', async () => {
         await bridge.depositWithCoin("0x90F79bf6EB2c4f870365E785982E1f101E93b906", {value: ethers.utils.parseEther("1")})
         expect(await waffle.provider.getBalance(bridge.address)).to.equal(ethers.utils.parseEther("1"))
     })
@@ -73,21 +73,21 @@ describe('Bridge contract', function () {
         expect(await waffle.provider.getBalance(receiver.address)).to.equal(ethers.utils.parseEther("10000.99"))
     })
 
-    it('inject erc20', async () => {
+    it('inject : erc20', async () => {
         await erc20.connect(owner).transfer(authorized.address, 500)
         await erc20.connect(authorized).approve(bridge.address, 150)
         await bridge.connect(authorized).inject(erc20.address, 150)
         expect(await erc20.balanceOf(bridge.address)).to.equal(160)
     })
 
-    it('inject ccnwrap', async () => {
+    it('inject : CCNWrap', async () => {
         await ccnwrap.connect(owner).transfer(authorized.address, 500)
         await ccnwrap.connect(authorized).approve(bridge.address, 150)
         await bridge.connect(authorized).inject(ccnwrap.address, 150)
         expect(await ccnwrap.balanceOf(bridge.address)).to.equal(160)
     })
     
-    it('inject coin', async () => {
+    it('inject : Coin', async () => {
         await bridge.connect(authorized).inject('0x0000000000000000000000000000000000000000', ethers.utils.parseEther("1"), {value: ethers.utils.parseEther("1")})
         expect(await waffle.provider.getBalance(bridge.address)).to.equal(ethers.utils.parseEther("1.01"))
     })
