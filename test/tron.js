@@ -3,7 +3,7 @@ const { ethers, upgrades, waffle } = require("hardhat")
 const { expectRevert } = require("@openzeppelin/test-helpers")
 
 
-describe('TronVault contract', function () {
+describe('EarlyBirdCollateral contract', function () {
 
     let owner, user, user2, user3
     let usdt, vault
@@ -24,7 +24,7 @@ describe('TronVault contract', function () {
         await usdt.transfer(user2.address, 200000)
         await usdt.transfer(user3.address, 200000)
 
-        const Vault = await ethers.getContractFactory("TronVault")
+        const Vault = await ethers.getContractFactory("EarlyBirdCollateral")
         vault = await Vault.deploy(usdt.address)
         await vault.deployed()
     })

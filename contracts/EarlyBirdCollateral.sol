@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 
-contract TronVault is Ownable {
+contract EarlyBirdCollateral is Ownable {
     using SafeMath for uint256;
 
     IERC20 USDT;
