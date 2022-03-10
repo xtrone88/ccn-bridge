@@ -5,6 +5,7 @@ describe('TronVault contract', function () {
 
     let owner, user, user2, user3
     let usdt, vault
+    let value
 
     before(async () => {
         const [_owner, _user, _user2, _user3] = await ethers.getSigners()
@@ -12,7 +13,7 @@ describe('TronVault contract', function () {
         user = _user
         user2 = _user2
         user3 = _user3
-
+        
         const USDT = await ethers.getContractFactory('TestERC20')
         usdt = await USDT.deploy()
         await usdt.deployed()
