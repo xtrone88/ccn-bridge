@@ -106,6 +106,6 @@ describe('EarlyBirdCollateral contract', function () {
         //     vault.connect(owner).refund(user.address, 1),
         //     "Already refunded"
         // );
-        await vault.connect(owner).refund(user.address, toDecimal(1));
+        // await vault.connect(owner).refund(user.address, toDecimal(1));
     })
 })
