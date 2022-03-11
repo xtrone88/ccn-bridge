@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
 
 contract EarlyBirdCollateral is Ownable {
     using SafeMath for uint256;
-    uint256 public constant INT_UNIT = 10 ** uint256(18);
+    uint256 public constant INT_UNIT = 10 ** uint256(6);
 
     IERC20 USDT;
     mapping(address => bool) public userRefunded;
