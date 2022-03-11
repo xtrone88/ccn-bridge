@@ -22,15 +22,15 @@ contract EarlyBirdCollateral is Ownable {
     }
 
     function deposit(uint256 amount) public {
-        require(amount >= 150000.mul(INT_UNIT), "Too small");
-        require(totalBalance().add(amount) <= 15000000.mul(INT_UNIT), "Can't deposit anymore");
+        require(amount >= uint256(150000).mul(INT_UNIT), "Too small");
+        require(totalBalance().add(amount) <= uint256(15000000).mul(INT_UNIT), "Can't deposit anymore");
         balances[msg.sender] = balances[msg.sender].add(amount);
         USDT.transferFrom(msg.sender, address(this), amount);
     }
 
     function refund(address receiver, uint256 price) public onlyOwner {
         require(userRefunded[receiver] == false, "Already refunded");
-        require(price <= 3.mul(INT_UNIT), "Incorrect price");
+        require(price <= uint256(3).mul(INT_UNIT), "Incorrect price");
         uint256 amount = balances[receiver].mul(INT_UNIT.sub(price.div(3))).div(INT_UNIT);
         balances[receiver] = balances[receiver].sub(amount);
         userRefunded[receiver] = true;
