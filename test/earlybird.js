@@ -7,7 +7,7 @@ const BN = ethers.BigNumber.from
 
 describe('EarlyBirdCollateral contract', function () {
 
-    let owner, user, user2, user3
+    let owner, authorized, user, user2, user3
     let usdt, vault
     let decimals
 
@@ -16,8 +16,9 @@ describe('EarlyBirdCollateral contract', function () {
     }
 
     before(async () => {
-        const [_owner, _user, _user2, _user3] = await ethers.getSigners()
+        const [_owner, _authorized, _user, _user2, _user3] = await ethers.getSigners()
         owner = _owner
+        authorized = _authorized
         user = _user
         user2 = _user2
         user3 = _user3
@@ -37,21 +38,36 @@ describe('EarlyBirdCollateral contract', function () {
         await vault.deployed()
     })
 
+    it('setAuthorized', async () => {
+        await vault.setAuthorized(authorized.address, true)
+    })
+
+    it('setQuota', async () => {
+        await vault.connect(authorized).setQuota(user.address, toDecimal(200000))
+        expect(await vault.quota(user.address)).to.equal(toDecimal(200000))
+
+        await vault.connect(authorized).setQuota(user2.address, toDecimal(200000))
+        expect(await vault.quota(user2.address)).to.equal(toDecimal(200000))
+
+        await vault.connect(authorized).setQuota(user3.address, toDecimal(200000))
+        expect(await vault.quota(user3.address)).to.equal(toDecimal(200000))
+    })
+
     it('deposit-1', async () => {
         await usdt.connect(user).approve(vault.address, toDecimal(200000))
-        await vault.connect(user).deposit(toDecimal(200000))
+        await vault.connect(user).deposit(user.address, toDecimal(200000))
         expect(await usdt.balanceOf(vault.address)).to.equal(toDecimal(200000))
     })
 
     it('deposit-2', async () => {
         await usdt.connect(user2).approve(vault.address, toDecimal(200000))
-        await vault.connect(user2).deposit(toDecimal(200000))
+        await vault.connect(user2).deposit(user2.address, toDecimal(200000))
         expect(await usdt.balanceOf(vault.address)).to.equal(toDecimal(400000))
     })
 
     it('deposit-3', async () => {
         await usdt.connect(user3).approve(vault.address, toDecimal(200000))
-        await vault.connect(user3).deposit(toDecimal(200000))
+        await vault.connect(user3).deposit(user3.address, toDecimal(200000))
         expect(await usdt.balanceOf(vault.address)).to.equal(toDecimal(600000))
     })
 

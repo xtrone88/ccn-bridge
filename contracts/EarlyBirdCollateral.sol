@@ -29,8 +29,7 @@ contract EarlyBirdCollateral is Ownable {
         USDT = USDToken(_USDT);
     }
 
-    function setAuthorized(address account, bool result) public onlyOwner
-    {
+    function setAuthorized(address account, bool result) public onlyOwner {
         authorizedAccount[account] = result;
     }
 
@@ -38,8 +37,7 @@ contract EarlyBirdCollateral is Ownable {
         return USDT.balanceOf(address(this));
     }
 
-    function setQuota(address huygens, uint256 amount) public onlyAuthorized
-    {
+    function setQuota(address huygens, uint256 amount) public onlyAuthorized {
         uint256 decimals = 10 ** USDT.decimals();
         require(amount >= uint256(150000).mul(decimals), "The minimum deposit amount is 150000");
         quota[huygens] = amount;
