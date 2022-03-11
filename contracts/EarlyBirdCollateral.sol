@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
 
 contract EarlyBirdCollateral is Ownable {
     using SafeMath for uint256;
+    uint256 public constant INT_UNIT = 10 ** uint256(18);
 
     IERC20 USDT;
     mapping(address => bool) public userRefunded;
@@ -21,16 +22,16 @@ contract EarlyBirdCollateral is Ownable {
     }
 
     function deposit(uint256 amount) public {
-        require(amount >= 150000, "Too small");
-        require(totalBalance() + amount <= 15000000, "Can't deposit anymore");
+        require(amount >= 150000.mul(INT_UNIT), "Too small");
+        require(totalBalance().add(amount) <= 15000000.mul(INT_UNIT), "Can't deposit anymore");
         balances[msg.sender] = balances[msg.sender].add(amount);
         USDT.transferFrom(msg.sender, address(this), amount);
     }
 
     function refund(address receiver, uint256 price) public onlyOwner {
         require(userRefunded[receiver] == false, "Already refunded");
-        require(price <= 3, "Incorrect price");
-        uint256 amount = balances[receiver].mul(uint256(10000).sub(price.mul(10000).div(3))).div(10000);
+        require(price <= 3.mul(INT_UNIT), "Incorrect price");
+        uint256 amount = balances[receiver].mul(INT_UNIT.sub(price.div(3))).div(INT_UNIT);
         balances[receiver] = balances[receiver].sub(amount);
         userRefunded[receiver] = true;
         USDT.transfer(receiver, amount);
