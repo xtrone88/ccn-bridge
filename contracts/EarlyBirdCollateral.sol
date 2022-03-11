@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/ownership/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract TetherToken is IERC20 {
+interface USDToken is IERC20 {
     function decimals() external returns (uint256);
 }
 
 contract EarlyBirdCollateral is Ownable {
     using SafeMath for uint256;
 
-    TetherToken USDT;
+    USDToken USDT;
     mapping(address => bool) public userRefunded;
     mapping(address => uint256) public balances;
 
-    constructor(address _USDT) public {
-        USDT = TetherToken(_USDT);
+    constructor(address _USDT) {
+        USDT = USDToken(_USDT);
     }
 
     function totalBalance() public view returns (uint256) {

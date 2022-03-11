@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import './Upgradeable.sol';
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract BridgeContract is Initializable, OwnableUpgradeable {
+contract BridgeContract is OwnableUpgradeable {
     using SafeMath for uint256;
 
     address operationAccount;
@@ -21,9 +21,6 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
         operationAccount = _operationAccount;
         wrapAddress = _wrapAddress;
         authorizedAccount[_authorizedAccount] = true;
-        // for (uint256 i = 0; i < _authorizedAccount.length; i++) {
-        //     authorizedAccount[_authorizedAccount[i]] = true;
-        // }
     }
 
     modifier authorizedOnly() {
@@ -64,7 +61,7 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
         require(balanceCrossChainFee[erc20] >= amount, "Insufficient available balance");
         balanceCrossChainFee[erc20] = balanceCrossChainFee[erc20].sub(amount);
         if (erc20 == address(0)) {
-            (bool success, ) = msg.sender.call.value(amount)("");
+            (bool success, ) = msg.sender.call{value: amount}("");
             require(success, "Failed to transfer value");
         } else {
             IERC20(erc20).transfer(msg.sender, amount);
@@ -89,7 +86,7 @@ contract BridgeContract is Initializable, OwnableUpgradeable {
 
         uint256 realBalance = 0;
         if (erc20 == address(0)) {
-            (bool success, ) = target.call.value(amount.sub(crossChainFee[erc20]))("");
+            (bool success, ) = target.call{value: amount.sub(crossChainFee[erc20])}("");
             require(success, "Failed to transfer value");
             realBalance = address(this).balance;
         } else {
