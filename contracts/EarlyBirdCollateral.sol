@@ -13,23 +13,48 @@ contract EarlyBirdCollateral is Ownable {
     using SafeMath for uint256;
 
     USDToken USDT;
+    mapping(address => bool) authorizedAccount;
     mapping(address => bool) public userRefunded;
     mapping(address => uint256) public balances;
+    mapping(address => uint256) public quota;   // Here the address is Huygens address
+
+    event Deposit(address indexed huygens, uint256 indexed amount);
+
+    modifier onlyAuthorized() {
+        require(authorizedAccount[msg.sender], "Not authroized account");
+        _;
+    }
 
     constructor(address _USDT) {
         USDT = USDToken(_USDT);
+    }
+
+    function setAuthorized(address account, bool result) public onlyOwner
+    {
+        authorizedAccount[account] = result;
     }
 
     function totalBalance() public view returns (uint256) {
         return USDT.balanceOf(address(this));
     }
 
-    function deposit(uint256 amount) public {
+    function setQuota(address huygens, uint256 amount) public onlyAuthorized
+    {
         uint256 decimals = 10 ** USDT.decimals();
-        require(amount >= uint256(150000).mul(decimals), "Too small");
+        require(amount >= uint256(150000).mul(decimals), "The minimum deposit amount is 150000");
+        quota[huygens] = amount;
+    }
+
+    function deposit(address huygens, uint256 amount) public {
+        uint256 decimals = 10 ** USDT.decimals();
+        require(amount > 0, "Deposit amount is zero");
+        require(amount == quota[huygens], "Deposit amount doesn't match quota");
         require(totalBalance().add(amount) <= uint256(15000000).mul(decimals), "Can't deposit anymore");
         balances[msg.sender] = balances[msg.sender].add(amount);
+        quota[huygens] = 0;
         USDT.transferFrom(msg.sender, address(this), amount);
+
+        emit Deposit(huygens, amount);
     }
 
     function refund(address receiver, uint256 price) public onlyOwner {
