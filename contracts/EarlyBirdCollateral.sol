@@ -5,16 +5,19 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 
+contract TetherToken is IERC20 {
+    function decimals() external returns (uint256);
+}
+
 contract EarlyBirdCollateral is Ownable {
     using SafeMath for uint256;
-    uint256 public constant INT_UNIT = 10 ** uint256(18);
 
-    IERC20 USDT;
+    TetherToken USDT;
     mapping(address => bool) public userRefunded;
     mapping(address => uint256) public balances;
 
     constructor(address _USDT) public {
-        USDT = IERC20(_USDT);
+        USDT = TetherToken(_USDT);
     }
 
     function totalBalance() public view returns (uint256) {
@@ -22,16 +25,18 @@ contract EarlyBirdCollateral is Ownable {
     }
 
     function deposit(uint256 amount) public {
-        require(amount >= 150000.mul(INT_UNIT), "Too small");
-        require(totalBalance().add(amount) <= 15000000.mul(INT_UNIT), "Can't deposit anymore");
+        uint256 decimals = 10 ** USDT.decimals();
+        require(amount >= uint256(150000).mul(decimals), "Too small");
+        require(totalBalance().add(amount) <= uint256(15000000).mul(decimals), "Can't deposit anymore");
         balances[msg.sender] = balances[msg.sender].add(amount);
         USDT.transferFrom(msg.sender, address(this), amount);
     }
 
     function refund(address receiver, uint256 price) public onlyOwner {
+        uint256 decimals = 10 ** USDT.decimals();
         require(userRefunded[receiver] == false, "Already refunded");
-        require(price <= 3.mul(INT_UNIT), "Incorrect price");
-        uint256 amount = balances[receiver].mul(INT_UNIT.sub(price.div(3))).div(INT_UNIT);
+        require(price <= uint256(3).mul(decimals), "Incorrect price");
+        uint256 amount = balances[receiver].mul(decimals.sub(price.div(3))).div(decimals);
         balances[receiver] = balances[receiver].sub(amount);
         userRefunded[receiver] = true;
         USDT.transfer(receiver, amount);
