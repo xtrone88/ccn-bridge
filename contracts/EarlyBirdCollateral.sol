@@ -39,12 +39,15 @@ contract EarlyBirdCollateral is Ownable {
         return USDT.balanceOf(address(this));
     }
 
-    function setQuota(address _eth_addess, address huygens, uint256 amount) public onlyAuthorized
+    function setQuota(address eth_addr, address huygens, uint256 amount) public onlyAuthorized
     {
         uint256 decimals = 10 ** USDT.decimals();
+        // SetQuota will be success only if neither eth_addr nor huygens address has been used before
+        require(eth_address[huygens] != eth_addr, "Two addresses have already binded.");
+        require(balances[eth_addr] == 0 && quota[huygens] == 0, "One of the address has been used before");
         require(amount >= uint256(150000).mul(decimals), "The minimum deposit amount is 150000");
         quota[huygens] = amount;
-        eth_address[huygens] = _eth_addess;
+        eth_address[huygens] = eth_addr;
     }
 
     function deposit(address huygens, uint256 amount) public {
