@@ -31,8 +31,7 @@ contract EarlyBirdCollateral is Ownable {
         USDT = USDToken(_USDT);
     }
 
-    function setAuthorized(address account, bool result) public onlyOwner
-    {
+    function setAuthorized(address account, bool result) public onlyOwner {
         authorizedAccount[account] = result;
     }
 
