@@ -13,14 +13,17 @@ contract EarlyBirdCollateral is Ownable {
     using SafeMath for uint256;
 
     USDToken USDT;
-    mapping(address => bool) authorizedAccount;
-    mapping(address => bool) public userRefunded;
-    mapping(address => uint256) public balances;
+    mapping(address => bool) authorizedAccount;     // Here the address is Ethereum address
 
-    mapping(address => uint256) public quota;       // Here the address is Huygens address
-    mapping(address => address) public eth_address;  // Map from the Huygens address to Ethereum addess
+    mapping(address => uint256) public quota;       // Here the address is Ethereum address
+    mapping(address => uint256) public balances;    // Here the address is Ethereum address
+    mapping(address => bool) public userRefunded;   // Here the address is Ethereum address
 
-    event Deposit(address indexed huygens, uint256 indexed amount);
+    mapping(address => address) public hgn_eth_map; // Map from the Huygens address to Ethereum address
+    mapping(address => address) public eth_hgn_map; // Map from the Ethereum address to Huygens address
+
+    event SetQuota(address indexed eth_addr, address indexed hgn_addr, uint256 indexed amount);
+    event Deposit(address indexed eth_addr, address indexed hgn_addr, uint256 indexed amount);
 
     modifier onlyAuthorized() {
         require(authorizedAccount[msg.sender], "Not authroized account");
@@ -39,28 +42,32 @@ contract EarlyBirdCollateral is Ownable {
         return USDT.balanceOf(address(this));
     }
 
-    function setQuota(address eth_addr, address huygens, uint256 amount) public onlyAuthorized
+    function setQuota(address eth_addr, address hgn_addr, uint256 amount) public onlyAuthorized
     {
         uint256 decimals = 10 ** USDT.decimals();
-        // SetQuota will be success only if neither eth_addr nor huygens address has been used before
-        require(eth_address[huygens] != eth_addr, "Two addresses have already binded.");
-        require(balances[eth_addr] == 0 && quota[huygens] == 0, "One of the address has been used before");
+        require(amount > 0, "Quota amount should be greater than 0.");
+        require(quota[eth_addr] == 0 && balances[eth_addr] == 0, "The Ethereum address is taken.");
+        require(quota[hgn_eth_map[hgn_addr]] == 0 && balances[hgn_eth_map[hgn_addr]] == 0, "The Huygens address is taken.");
         require(amount >= uint256(150000).mul(decimals), "The minimum deposit amount is 150000");
-        quota[huygens] = amount;
-        eth_address[huygens] = eth_addr;
+        quota[eth_addr] = amount;
+        hgn_eth_map[hgn_addr] = eth_addr;
+        eth_hgn_map[eth_addr] = hgn_addr;
+
+        emit SetQuota(eth_addr, hgn_addr, amount);
     }
 
-    function deposit(address huygens, uint256 amount) public {
+    function deposit(uint256 amount) public {
         uint256 decimals = 10 ** USDT.decimals();
-        require(msg.sender == eth_address[huygens]);    // Only the specified Ethereum address can make a deposit
-        require(amount > 0, "Deposit amount is zero");
-        require(amount == quota[huygens], "Deposit amount doesn't match quota");
-        require(totalBalance().add(amount) <= uint256(15000000).mul(decimals), "Can't deposit anymore");
+        require(amount > 0, "Deposit amount should be greater than 0.");
+        if (totalBalance().add(amount) < uint256(15000000).mul(decimals))
+            require(amount == quota[msg.sender], "Deposit amount doesn't match quota.");
+        else
+            require(totalBalance().add(amount) == uint256(15000000).mul(decimals), "Total deposit balance cannot exceed 15 million.");
         balances[msg.sender] = balances[msg.sender].add(amount);
-        quota[huygens] = 0;
+        quota[msg.sender] = 0;
         USDT.transferFrom(msg.sender, address(this), amount);
 
-        emit Deposit(huygens, amount);
+        emit Deposit(msg.sender, eth_hgn_map[msg.sender], amount);
     }
 
     function refund(address receiver, uint256 price) public onlyOwner {
