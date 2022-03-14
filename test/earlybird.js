@@ -1,7 +1,5 @@
 const { expect } = require("chai")
 const { ethers, upgrades, waffle } = require("hardhat")
-const { expectRevert } = require("@openzeppelin/test-helpers")
-const ether = require("@openzeppelin/test-helpers/src/ether")
 
 const BN = ethers.BigNumber.from
 
@@ -52,21 +50,10 @@ describe('EarlyBirdCollateral contract', function () {
         await vault.connect(authorized).setQuota(user2.address, h_user2.address, toDecimal(200000))
         expect(await vault.quota(user2.address)).to.equal(toDecimal(200000))
 
-        await expectRevert(
-            vault.connect(authorized).setQuota(user3.address, h_user3.address, toDecimal(0)),
-            "Quota amount should be greater than 0."
-        );
-
-        await expectRevert(
-            vault.connect(authorized).setQuota(user.address, h_user3.address, toDecimal(200000)),
-            "The Ethereum address is taken."
-        );
-
-        await expectRevert(
-            vault.connect(authorized).setQuota(user3.address, h_user.address, toDecimal(200000)),
-            "The Huygens address is taken."
-        );
-
+        expect(vault.connect(authorized).setQuota(user3.address, h_user3.address, toDecimal(0))).to.be.revertedWith('Quota amount should be greater than 0.')
+        expect(vault.connect(authorized).setQuota(user.address, h_user3.address, toDecimal(200000))).to.be.revertedWith('The Ethereum address is taken.')
+        expect(vault.connect(authorized).setQuota(user3.address, h_user.address, toDecimal(200000))).to.be.revertedWith('The Huygens address is taken.')
+        
         await vault.connect(authorized).setQuota(user3.address, h_user3.address, toDecimal(15000000))
         expect(await vault.quota(user3.address)).to.equal(toDecimal(15000000))
     })
@@ -82,29 +69,15 @@ describe('EarlyBirdCollateral contract', function () {
         await vault.connect(user2).deposit(toDecimal(200000))
         expect(await usdt.balanceOf(vault.address)).to.equal(toDecimal(400000))
 
-        await expectRevert(
-            vault.connect(user2).deposit(toDecimal(200000)),
-            "Deposit amount doesn't match quota."
-        );
+        expect(vault.connect(user2).deposit(toDecimal(200000))).to.be.revertedWith('Deposit amount doesn\'t match quota.')
     })
 
     it('deposit-3', async () => {
         await usdt.connect(user3).approve(vault.address, toDecimal(15000000))
 
-        await expectRevert(
-            vault.connect(user3).deposit(toDecimal(0)),
-            "Deposit amount should be greater than 0."
-        );
-
-        await expectRevert(
-            vault.connect(user3).deposit(toDecimal(100000)),
-            "Deposit amount doesn't match quota."
-        );
-
-        await expectRevert(
-            vault.connect(user3).deposit(toDecimal(14600001)),
-            "Total deposit balance cannot exceed 15 million."
-        );
+        expect(vault.connect(user3).deposit(toDecimal(0))).to.be.revertedWith('Deposit amount should be greater than 0.')
+        expect(vault.connect(user3).deposit(toDecimal(100000))).to.be.revertedWith('Deposit amount doesn\'t match quota.')
+        expect(vault.connect(user3).deposit(toDecimal(14600001))).to.be.revertedWith('Total deposit balance cannot exceed 15 million.')
 
         await vault.connect(user3).deposit(toDecimal(14600000))
         expect(await usdt.balanceOf(vault.address)).to.equal(toDecimal(15000000))
@@ -147,11 +120,7 @@ describe('EarlyBirdCollateral contract', function () {
     })
 
     it('refund again', async () => {
-        await expectRevert(
-            vault.connect(owner).refund(user.address, 1),
-            "Already refunded"
-        );
-        // await vault.connect(owner).refund(user.address, toDecimal(1));
+        expect(vault.connect(owner).refund(user.address, 1)).to.be.revertedWith('Already refunded')
     })
 
     it('withraw', async () => {
