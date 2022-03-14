@@ -58,7 +58,7 @@ contract EarlyBirdCollateral is Ownable {
         uint256 decimals = 10**USDT.decimals();
         require(amount > 0, "Quota amount should be greater than 0.");
         require(
-            quota[eth_addr] == 0 && balances[eth_addr] == 0,
+            userRefunded[eth_addr] == false && quota[eth_addr] == 0 && balances[eth_addr] == 0,
             "The Ethereum address is taken."
         );
         require(
