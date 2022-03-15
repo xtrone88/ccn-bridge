@@ -11,7 +11,7 @@ describe('Bridge contract', function () {
         erc20 = await ERC20.deploy(1000000000000, 'tether', 'usdm', 4)
         await erc20.deployed()
 
-        const CCNWRAP = await ethers.getContractFactory('TestERC20')
+        const CCNWRAP = await ethers.getContractFactory('UCCN')
         ccnwrap = await CCNWRAP.deploy()
         await ccnwrap.deployed()
 

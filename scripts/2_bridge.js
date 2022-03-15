@@ -4,9 +4,9 @@ const { ethers, upgrades } = require("hardhat")
 async function main() {
   const [owner, operation, authorized, user] = await ethers.getSigners()
   
-  // const erc20 = await ethers.getContractAt('TetherToken', '0xe8b0CC9d7E29e43Ba970974df8603E02a9FfC0A3')
-  // const ccnwrap = await ethers.getContractAt('TestERC20', '0xf3472c146D65bf691631c6c37B9442D18f15Cfda')
-  // const bridgeContract = await ethers.getContractAt('BridgeContract', '0x7D3C120B51601a234f320fB7147B16b895513b39')
+  // const erc20 = await ethers.getContractAt('TetherToken', '0x5FbDB2315678afecb367f032d93F642f64180aa3')
+  // const ccnwrap = await ethers.getContractAt('TestERC20', '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9')
+  // const bridgeContract = await ethers.getContractAt('BridgeContract', '0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6')
   
   const coinAddress = '0x0000000000000000000000000000000000000000'
   const targetAddress = '0x90F79bf6EB2c4f870365E785982E1f101E93b906'
@@ -15,9 +15,9 @@ async function main() {
   const ERC20 = await ethers.getContractFactory('TetherToken')
   erc20 = await ERC20.deploy(1000000000000, 'tether', 'usdm', 4)
   await erc20.deployed()
-  console.log("> OK: USDM deployed to:", erc20.address)
-
-  console.log("2 USDM send to authorized account...")
+  console.log("> OK: USDM deployed to:", erc20.address, owner.address)
+  
+  console.log("2 USDM send to authorized account...", authorized.address)
   await erc20.transfer(authorized.address, 100000000)
   expect(await erc20.balanceOf(authorized.address)).to.equal(100000000)
   console.log("> OK: USDM sent to authorized account")
