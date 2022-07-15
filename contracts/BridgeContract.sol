@@ -9,7 +9,7 @@ contract BridgeContract is OwnableUpgradeable {
     using SafeMath for uint256;
 
     address operationAccount;
-    address wrapAddress; // wrap token address for coin
+    address public wrapAddress; // wrap token address for coin
 
     mapping(address => bool) authorizedAccount;
     mapping(address => uint256) public balanceAdjustmentQuota;

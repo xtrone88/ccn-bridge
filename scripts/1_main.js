@@ -5,19 +5,22 @@ async function main() {
 
   console.log(operation.address, authorized.address, user.address)
 
-  // const CCNWRAP = await ethers.getContractFactory('UCCN')
-  // ccnwrap = await CCNWRAP.deploy()
-  // await ccnwrap.deployed()
-  // console.log("> OK: CCNWRAP deployed to:", ccnwrap.address, "Minted:", await ccnwrap.balanceOf(owner.address))
+  const CCNWRAP = await ethers.getContractFactory('UCCN')
+  ccnwrap = await CCNWRAP.deploy()
+  await ccnwrap.deployed()
+  console.log("> OK: CCNWRAP deployed to:", ccnwrap.address, "Minted:", await ccnwrap.balanceOf(owner.address))
 
   const BridgeContract = await ethers.getContractFactory("BridgeContract")
   const bridgeContract = await upgrades.deployProxy(BridgeContract, [
     operation.address,
-    '0xD526f1AFF0EAabfa34b552DC9718EcD307Da04d8',
+    ccnwrap.address,
     authorized.address
   ])
   await bridgeContract.deployed()
   console.log("> OK: BridgeContract deployed to:", bridgeContract.address)
+
+  const bridgeContract2 = await upgrades.upgradeProxy(bridgeContract.address, BridgeContract)
+  console.log("> OK: wrapAddress:", await bridgeContract2.wrapAddress())
 
   // const TEST = await ethers.getContractFactory('TestToken')
   // const test = await TEST.deploy()

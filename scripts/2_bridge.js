@@ -1,8 +1,14 @@
 const { expect } = require("chai")
 const { ethers, upgrades } = require("hardhat")
 
+const BN = ethers.BigNumber.from
+
 async function main() {
   const [owner, operation, authorized, user] = await ethers.getSigners()
+
+  await owner.sendTransaction({to: operation.address, value: ethers.utils.parseEther("1.0")})
+  await owner.sendTransaction({to: authorized.address, value: ethers.utils.parseEther("1.0")})
+  await owner.sendTransaction({to: user.address, value: ethers.utils.parseEther("1.0")})
   
   // const erc20 = await ethers.getContractAt('TetherToken', '0x5FbDB2315678afecb367f032d93F642f64180aa3')
   // const ccnwrap = await ethers.getContractAt('TestERC20', '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9')
